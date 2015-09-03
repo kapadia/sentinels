@@ -33,13 +33,23 @@ def collections(raw):
 
 
 @click.command('search')
+@click.argument("aoi", default="-", required=False)
 @click.option('--rows', default=50, help='The number of results to return')
 @click.option('--start', default=0, help='The start offset')
-def search(rows, start):
+def search(aoi, rows, start):
     """
     Describe the products hosted by the Scientific Data Hub.
     """
-    click.echo(json.dumps(api.search(rows=rows, start=start)))
+
+    geojson = None
+    if aoi == "-":
+        src = click.open_file('-')
+        if not src.isatty():
+            geojson = json.loads(src.read())
+    else:
+        geojson = json.loads(click.open_file(aoi).read())
+    
+    click.echo(json.dumps(api.search(aoi=geojson, rows=rows, start=start)))
 
 sentinel.add_command(ping)
 sentinel.add_command(metadata_service)

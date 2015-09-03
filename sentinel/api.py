@@ -3,6 +3,7 @@ import os
 import json
 import requests
 from requests.auth import HTTPBasicAuth
+from shapely.geometry import shape
 
 from sentinel import ODATA_ROOT_URI, SOLR_ROOT_URI
 from sentinel import parse
@@ -57,7 +58,7 @@ def collections(raw=False):
         return parse.collections(r.text)
 
 
-def search(rows=None, start=None):
+def search(aoi=None, rows=None, start=None):
     """
     Get metadata on products hosted by the Scientific Data Hub.
     """
@@ -68,6 +69,14 @@ def search(rows=None, start=None):
         params['rows'] = rows
     if start:
         params['start'] = start
+    if aoi:
+        if aoi.get('Type') == 'Feature':
+            geometry = aoi.get('geometry')
+        else:
+            geometry = aoi.get('features')[0].get('geometry')
+        wkt = shape(geometry).to_wkt()
+        params['q'] = 'footprint:"Intersects(%s)"' % wkt
+
     r = requests.get(uri, auth=get_auth(), params=params)
 
     return parse.search(r.text)
