@@ -3,6 +3,8 @@ Sentinels Scientific Data Hub Client Library
 
 Sentinels Scientific Data Hub provides an archive of Sentinels data. Currently only Sentinel-1 data is available, with Sentinel-2 to be available in the near future.
 
+This is a client library that massages all responses into geojson for interoperability with various geojson-aware tools.
+
 Usage
 -----
 
