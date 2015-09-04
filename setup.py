@@ -7,7 +7,7 @@ with codecs_open('README.rst', encoding='utf-8') as f:
     long_description = f.read()
 
 
-setup(name='sentinel',
+setup(name='sentinels',
       version='0.0.1',
       description=u"Client library for interfacing with ESA's Scientific Data Hub",
       long_description=long_description,
@@ -30,6 +30,6 @@ setup(name='sentinel',
       },
       entry_points="""
       [console_scripts]
-      sentinel=sentinel.scripts.cli:sentinel
+      sentinels=sentinels.scripts.cli:sentinels
       """
       )
