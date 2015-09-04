@@ -5,8 +5,8 @@ import requests
 from requests.auth import HTTPBasicAuth
 from shapely.geometry import shape
 
-from sentinel import ODATA_ROOT_URI, SOLR_ROOT_URI
-from sentinel import parse
+from sentinels import ODATA_ROOT_URI, SOLR_ROOT_URI, SUPPORTED_KEYWORDS
+from sentinels import parse
 
 
 def get_auth():
@@ -58,27 +58,41 @@ def collections(raw=False):
         return parse.collections(r.text)
 
 
-def search(aoi=None, rows=None, start=None):
+def construct_query_string(**kwargs):
+    """
+    Construct a search query compatible with the OpenSearch endpoint.
+    """
+    return ' AND '.join([ "%s:%s" % (k.replace('_', ''), v) for k, v in kwargs.iteritems() if (k.replace('_', '') in SUPPORTED_KEYWORDS) and v ])
+
+
+def search(
+    aoi=None, rows=None, offset=None, platformname=None, begin_position=None, end_position=None,
+    start_date=None, end_date=None, filename=None, orbit_number=None, last_orbit_number=None,
+    orbit_direction=None, polarization_mode=None, product_type=None, relative_orbit_number=None,
+    last_relative_orbit_number=None, sensor_operational_mode=None, swath_identifier=None):
     """
     Get metadata on products hosted by the Scientific Data Hub.
     """
+    kwargs = locals()
+
     uri = os.path.join(SOLR_ROOT_URI, 'search')
 
     params = { 'q': '*' }
     if rows:
         params['rows'] = rows
-    if start:
-        params['start'] = start
+    if offset:
+        params['start'] = offset
     if aoi:
         if aoi.get('Type') == 'Feature':
             geometry = aoi.get('geometry')
         else:
             geometry = aoi.get('features')[0].get('geometry')
         wkt = shape(geometry).to_wkt()
-        params['q'] = 'footprint:"Intersects(%s)"' % wkt
+        kwargs['footprint'] = '"Intersects(%s)"' % wkt
+
+    params['q'] = construct_query_string(**kwargs)
 
     r = requests.get(uri, auth=get_auth(), params=params)
-
     return parse.search(r.text)
 
 
