@@ -11,8 +11,8 @@ from sentinels import parse
 
 def get_auth():
 
-    username = os.environ.get('SENTINEL_USERNAME')
-    password = os.environ.get('SENTINEL_PASSWORD')
+    username = os.environ.get('SENTINELS_USERNAME')
+    password = os.environ.get('SENTINELS_PASSWORD')
 
     return HTTPBasicAuth(username, password)
 
@@ -62,7 +62,10 @@ def construct_query_string(**kwargs):
     """
     Construct a search query compatible with the OpenSearch endpoint.
     """
-    return ' AND '.join([ "%s:%s" % (k.replace('_', ''), v) for k, v in kwargs.iteritems() if (k.replace('_', '') in SUPPORTED_KEYWORDS) and v ])
+    query = ' AND '.join([ "%s:%s" % (k.replace('_', ''), v) for k, v in kwargs.iteritems() if (k.replace('_', '') in SUPPORTED_KEYWORDS) and v ])
+    query = query or '*'
+
+    return query
 
 
 def search(
@@ -77,7 +80,7 @@ def search(
 
     uri = os.path.join(SOLR_ROOT_URI, 'search')
 
-    params = { 'q': '*' }
+    params = {}
     if rows:
         params['rows'] = rows
     if offset:
@@ -93,6 +96,7 @@ def search(
     params['q'] = construct_query_string(**kwargs)
 
     r = requests.get(uri, auth=get_auth(), params=params)
+
     return parse.search(r.text)
 
 
