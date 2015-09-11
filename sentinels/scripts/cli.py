@@ -1,10 +1,18 @@
 
+import sys
 import json
+import signal
 import click
 from sentinels import api
 
 
 raw_opt = click.option("--raw", is_flag=True, help="Return the raw form response for OData requests.")
+
+
+def signal_handler(signal_code, frame):
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 @click.group()
