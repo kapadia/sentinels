@@ -2,11 +2,11 @@
 import os
 import json
 import requests
+
 from requests.auth import HTTPBasicAuth
-from shapely.geometry import shape
 
 from sentinels import ODATA_ROOT_URI, SOLR_ROOT_URI, SUPPORTED_KEYWORDS
-from sentinels import parse
+from sentinels import parse, format
 
 
 def get_auth():
@@ -70,11 +70,39 @@ def construct_query_string(**kwargs):
 
 def search(
     aoi=None, rows=None, offset=None, platformname=None, begin_position=None, end_position=None,
-    start_date=None, end_date=None, filename=None, orbit_number=None, last_orbit_number=None,
+    ingestion_date=None, filename=None, orbit_number=None, last_orbit_number=None,
     orbit_direction=None, polarization_mode=None, product_type=None, relative_orbit_number=None,
     last_relative_orbit_number=None, sensor_operational_mode=None, swath_identifier=None):
     """
     Get metadata on products hosted by the Scientific Data Hub.
+
+    :param aoi:
+        Area of interest as a dictionary representation of a geojson feature
+    :param rows:
+        The number of rows to return
+    :param offset:
+        The row starting offset
+    :param platformname:
+        The platform name (e.g. Sentinel-1, Sentinel-2)
+    :param begin_position:
+        A time interval search based on the sensing start time. This should be a tuple
+        containing a start time and end time.
+    :param end_position:
+        A time interval search based on the sensing end time. This should be a tuple
+        containing a start time and end time.
+    :param ingestion_date:
+        A time interval search based on the time of publication of the product on the Data Hub.
+        This should be a tuple containing a start time and end time.
+    :param filename:
+    :param orbit_number:
+    :param last_orbit_number:
+    :param orbit_direction:
+    :param polarization_mode:
+    :param product_type:
+    :param relative_orbit_number:
+    :param last_relative_orbit_number:
+    :param sensor_operational_mode:
+    :param swath_identifier:
     """
     kwargs = locals()
 
@@ -86,12 +114,13 @@ def search(
     if offset:
         params['start'] = offset
     if aoi:
-        if aoi.get('Type') == 'Feature':
-            geometry = aoi.get('geometry')
-        else:
-            geometry = aoi.get('features')[0].get('geometry')
-        wkt = shape(geometry).to_wkt()
-        kwargs['footprint'] = '"Intersects(%s)"' % wkt
+        kwargs['footprint'] = format.feature(aoi)
+    if begin_position:
+        kwargs['begin_position'] = format.time_interval(begin_position)
+    if end_position:
+        kwargs['end_position'] = format.time_interval(end_position)
+    if ingestion_date:
+        kwargs['ingestion_date'] = format.time_interval(ingestion_date)
 
     params['q'] = construct_query_string(**kwargs)
 
