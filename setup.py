@@ -23,6 +23,7 @@ setup(name='sentinels',
       install_requires=[
           'click',
           'requests',
+          'dateutil',
           'shapely'
       ],
       extras_require={
