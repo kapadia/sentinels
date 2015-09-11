@@ -119,9 +119,12 @@ def collections(response):
 def search(response):
     """
     Parse an XML response from the SOLR endpoint.
+
+    .. todo: Assert that the response contains `totalResults`,
+             `startIndex` and `itemsPerPage`. Fix if issue arises.
     """
     root = ElementTree.fromstring(response)
-    
+
     return {
         "totalResults": int(root.find("opensearch:totalResults", NAMESPACES).text),
         "startIndex": int(root.find("opensearch:startIndex", NAMESPACES).text),
@@ -131,5 +134,3 @@ def search(response):
             get_entry(entry) for entry in root.findall('atom:entry', NAMESPACES)
         ]
     }
-    
-    
