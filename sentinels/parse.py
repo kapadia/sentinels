@@ -3,9 +3,6 @@ import json
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-from shapely import wkt
-from shapely.geometry import mapping
-
 
 NAMESPACES = {
     "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
@@ -47,8 +44,15 @@ def get_array(item):
 
 
 def get_footprint(footprint):
-    g = wkt.loads(footprint)
-    return mapping(g)
+
+    coordinates = footprint.replace('POLYGON', '').replace('((', '').replace('))', '').strip()
+
+    return {
+        'coordinates': [ [ [float(x) for x in c.split(' ') ] for c in coordinates.split(',') ] ],
+        'type': 'Polygon'
+    }
+
+    return geojson
 
 
 def get_link(item):
