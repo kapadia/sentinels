@@ -1,7 +1,5 @@
 
-from shapely.geometry import shape
 from dateutil.parser import parse
-
 from sentinels import SUPPORTED_KEYWORDS
 
 
@@ -14,11 +12,15 @@ def feature(geojson):
         Dictionary representation of geojson describing a
         region of interest.
     """
+
     if geojson.get('Type') == 'Feature':
         geometry = geojson.get('geometry')
     else:
         geometry = geojson.get('features')[0].get('geometry')
-    wkt = shape(geometry).to_wkt()
+    
+    c = geometry.get('coordinates')
+    wkt = 'POLYGON ((%s))' % ', '.join([ "%.16f %.16f" % (x[0], x[1]) for x in c[0] ])
+
     return '"Intersects(%s)"' % wkt
 
 
