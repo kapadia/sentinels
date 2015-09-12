@@ -69,18 +69,19 @@ def get_link(item):
 
 
 def get_entry(entry):
-
+    
     _get = {
         'str': get_string,
         'int': get_integer,
         'bool': get_boolean,
         'arr': get_array,
         'date': get_date,
-        'link': get_link
+        'link': get_link,
+        'id': get_string
     }
 
-    blacklist = ['title', 'id', 'summary', 'gmlfootprint', 'footprint']
-    whitelist = ['str', 'int', 'bool', 'date', 'link']
+    blacklist = ['title', 'summary', 'gmlfootprint', 'footprint']
+    whitelist = ['str', 'int', 'bool', 'date', 'link', 'id']
 
     feature = {
         'type': 'Feature',
@@ -94,7 +95,9 @@ def get_entry(entry):
         if (tag in whitelist):
             key, value = _get[tag](c)
             
-            if tag == 'link':
+            if tag == 'id':
+                feature['id'] = value
+            elif tag == 'link':
                 feature['properties']['links'][key] = value
             elif key not in blacklist:
                 feature['properties'][key] = value
@@ -126,6 +129,10 @@ def search(response):
     root = ElementTree.fromstring(response)
 
     return {
+        "title": root.find("atom:title", NAMESPACES).text,
+        "subtitle": root.find("atom:subtitle", NAMESPACES).text,
+        "updated": root.find("atom:updated", NAMESPACES).text,
+        "id": root.find("atom:id", NAMESPACES).text,
         "totalResults": int(root.find("opensearch:totalResults", NAMESPACES).text),
         "startIndex": int(root.find("opensearch:startIndex", NAMESPACES).text),
         "itemsPerPage": int(root.find("opensearch:itemsPerPage", NAMESPACES).text),
