@@ -2,6 +2,8 @@
 from shapely.geometry import shape
 from dateutil.parser import parse
 
+from sentinels import SUPPORTED_KEYWORDS
+
 
 def feature(geojson):
     """
@@ -30,3 +32,13 @@ def time_interval(position):
     """
     time_range = map(lambda d: parse(d).strftime('%Y-%m-%dT%H:%M:%SZ'), position)
     return '[%s]' % ' TO '.join(time_range)
+
+
+def query_string(**kwargs):
+    """
+    Construct a search query compatible with the OpenSearch endpoint.
+    """
+    query = ' AND '.join([ "%s:%s" % (k.replace('_', ''), v) for k, v in kwargs.iteritems() if (k.replace('_', '') in SUPPORTED_KEYWORDS) and v ])
+    query = query or '*'
+
+    return query

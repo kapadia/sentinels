@@ -5,7 +5,7 @@ import requests
 
 from requests.auth import HTTPBasicAuth
 
-from sentinels import ODATA_ROOT_URI, SOLR_ROOT_URI, SUPPORTED_KEYWORDS
+from sentinels import ODATA_ROOT_URI, SOLR_ROOT_URI
 from sentinels import parse, format
 
 
@@ -56,16 +56,6 @@ def collections(raw=False):
         return json.loads(r.text)
     else:
         return parse.collections(r.text)
-
-
-def construct_query_string(**kwargs):
-    """
-    Construct a search query compatible with the OpenSearch endpoint.
-    """
-    query = ' AND '.join([ "%s:%s" % (k.replace('_', ''), v) for k, v in kwargs.iteritems() if (k.replace('_', '') in SUPPORTED_KEYWORDS) and v ])
-    query = query or '*'
-
-    return query
 
 
 def search(
@@ -122,7 +112,7 @@ def search(
     if ingestion_date:
         kwargs['ingestion_date'] = format.time_interval(ingestion_date)
 
-    params['q'] = construct_query_string(**kwargs)
+    params['q'] = format.query_string(**kwargs)
 
     r = requests.get(uri, auth=get_auth(), params=params)
 
