@@ -1,9 +1,4 @@
 
-# The Data Hub JSON response is messy. These functions select
-# relevant information to be passed to the user in a less messy
-# form. Please submit a GitHub issue if there's a field that
-# should be included in the parsed response.
-
 import json
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -16,6 +11,11 @@ NAMESPACES = {
     "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
     "atom": "http://www.w3.org/2005/Atom"
 }
+
+
+def get_text(item):
+    name = item.tag.split('}')[-1]
+    return name, item.text
 
 
 def get_string(item):
@@ -39,15 +39,11 @@ def get_boolean(item):
     return name, value
 
 
-def get_date(item):
+def get_array(item):
     name = item.attrib.get('name')
-    value = item.text
+    value = [ c.text for c in item.getchildren() ]
 
     return name, value
-
-
-def get_array():
-    pass
 
 
 def get_footprint(footprint):
@@ -69,19 +65,21 @@ def get_link(item):
 
 
 def get_entry(entry):
-    
+
     _get = {
         'str': get_string,
         'int': get_integer,
         'bool': get_boolean,
         'arr': get_array,
-        'date': get_date,
+        'date': get_string,
         'link': get_link,
-        'id': get_string
+        'id': get_string,
+        'summary': get_text,
+        'title': get_text,
+        'arr': get_array,
     }
 
-    blacklist = ['title', 'summary', 'gmlfootprint', 'footprint']
-    whitelist = ['str', 'int', 'bool', 'date', 'link', 'id']
+    blacklist = ['gmlfootprint', 'footprint']
 
     feature = {
         'type': 'Feature',
@@ -89,22 +87,21 @@ def get_entry(entry):
             'links': {}
         }
     }
+
     for c in entry.getchildren():
         tag = c.tag.split('}')[-1]
 
-        if (tag in whitelist):
-            key, value = _get[tag](c)
-            
-            if tag == 'id':
-                feature['id'] = value
-            elif tag == 'link':
-                feature['properties']['links'][key] = value
-            elif key not in blacklist:
-                feature['properties'][key] = value
+        key, value = _get[tag](c)
 
-            if key == 'footprint':
-                feature['geometry'] = get_footprint(value)
-            
+        if tag == 'id':
+            feature['id'] = value
+        elif tag == 'link':
+            feature['properties']['links'][key] = value
+        elif key not in blacklist:
+            feature['properties'][key] = value
+
+        if key == 'footprint':
+            feature['geometry'] = get_footprint(value)
 
     return feature
 
@@ -141,3 +138,4 @@ def search(response):
             get_entry(entry) for entry in root.findall('atom:entry', NAMESPACES)
         ]
     }
+
