@@ -23,8 +23,7 @@ setup(name='sentinels',
       install_requires=[
           'click',
           'requests',
-          'dateutil',
-          'shapely'
+          'dateutil'
       ],
       extras_require={
           'test': ['pytest'],
