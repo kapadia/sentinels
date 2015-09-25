@@ -28,6 +28,12 @@ def get_integer(item):
 
     return name, value
 
+def get_double(item):
+    name = item.attrib.get('name')
+    value = float(item.text)
+
+    return name, value
+
 
 def get_boolean(item):
     name = item.attrib.get('name')
@@ -81,6 +87,7 @@ def get_entry(entry):
         'summary': get_text,
         'title': get_text,
         'arr': get_array,
+        'double': get_double
     }
 
     blacklist = ['gmlfootprint', 'footprint']
