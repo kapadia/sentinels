@@ -121,6 +121,7 @@ def search(
         if r.history[0].status_code == 302:
             raise MaintenanceDowntimeError()
 
+    r.raise_for_status()
     return parse.search(r.text)
 
 
