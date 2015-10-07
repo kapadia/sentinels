@@ -14,3 +14,8 @@ SUPPORTED_KEYWORDS = [
     'orbitdirection', 'polarisationmode', 'producttype', 'relativeorbitnumber',
     'lastrelativeorbitnumber', 'sensoroperationalmode', 'swathidentifier'
 ]
+
+class MaintenanceDowntimeError(Exception):
+
+    def __str__(self):
+        return "It appears the Scientific Data Hub is undergoing maintenance"

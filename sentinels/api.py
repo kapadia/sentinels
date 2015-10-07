@@ -6,6 +6,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 from sentinels import ODATA_ROOT_URI, SOLR_ROOT_URI
+from sentinels import MaintenanceDowntimeError
 from sentinels import parse, format
 
 
@@ -115,6 +116,10 @@ def search(
     params['q'] = format.query_string(**kwargs)
 
     r = requests.get(uri, auth=get_auth(), params=params)
+
+    if len(r.history) > 0:
+        if r.history[0].status_code == 302:
+            raise MaintenanceDowntimeError()
 
     return parse.search(r.text)
 
